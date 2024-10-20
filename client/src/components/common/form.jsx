@@ -1,15 +1,142 @@
-function CommonForm({ formControl }) {
+import PropTypes from "prop-types";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import { Textarea } from "../ui/textarea";
+
+function CommonForm({
+  formControl,
+  formData,
+  setFormData,
+  onSubmit,
+  buttonText,
+}) {
+  function renderInputsByComponentsType(getControlItem) {
+    let element = null;
+    const value = formData[getControlItem.name] || ""; // Ensures a default empty string
+
+    switch (getControlItem.componentType) {
+      case "input":
+        element = (
+          <Input
+            name={getControlItem.name}
+            placeholder={getControlItem.placeholder}
+            id={getControlItem.name}
+            type={getControlItem.type}
+            value={value}
+            onChange={(event) =>
+              setFormData({
+                ...formData,
+                [getControlItem.name]: event.target.value,
+              })
+            }
+          />
+        );
+        break;
+      case "select":
+        element = (
+          <Select
+            onValueChange={(value) =>
+              setFormData({ ...formData, [getControlItem.name]: value })
+            }
+            value={value}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder={getControlItem.placeholder} />
+            </SelectTrigger>
+            <SelectContent>
+              {getControlItem.options && getControlItem.options.length > 0
+                ? getControlItem.options.map((optionItem) => (
+                    <SelectItem key={optionItem.id} value={optionItem.id}>
+                      {optionItem.label}
+                    </SelectItem>
+                  ))
+                : null}
+            </SelectContent>
+          </Select>
+        );
+        break;
+      case "textarea":
+        element = (
+          <Textarea
+            name={getControlItem.name}
+            placeholder={getControlItem.placeholder}
+            id={getControlItem.name}
+            type={getControlItem.type}
+            value={value}
+            onChange={(event) =>
+              setFormData({
+                ...formData,
+                [getControlItem.name]: event.target.value,
+              })
+            }
+          />
+        );
+        break;
+      default:
+        element = (
+          <Input
+            name={getControlItem.name}
+            placeholder={getControlItem.placeholder}
+            id={getControlItem.name}
+            type={getControlItem.type}
+            value={value}
+            onChange={(event) =>
+              setFormData({
+                ...formData,
+                [getControlItem.name]: event.target.value,
+              })
+            }
+          />
+        );
+        break;
+    }
+
+    return element;
+  }
+
   return (
-    <form>
+    <form onSubmit={onSubmit}>
       <div className="flex flex-col gap-3">
         {formControl.map((controlItem) => (
           <div className="grid w-full gap-1.5" key={controlItem.name}>
-            <Label></Label>
+            <Label className="mb-1">{controlItem.label}</Label>
+            {renderInputsByComponentsType(controlItem)}
           </div>
         ))}
       </div>
+      <Button className="mt-2 w-full">{buttonText || "Submit"}</Button>
     </form>
   );
 }
+
+CommonForm.propTypes = {
+  formControl: PropTypes.arrayOf(
+    PropTypes.shape({
+      name: PropTypes.string.isRequired,
+      label: PropTypes.string.isRequired,
+      placeholder: PropTypes.string,
+      type: PropTypes.string,
+      componentType: PropTypes.string.isRequired,
+      options: PropTypes.arrayOf(
+        PropTypes.shape({
+          id: PropTypes.string.isRequired,
+          label: PropTypes.string.isRequired,
+        })
+      ),
+    })
+  ).isRequired,
+  formData: PropTypes.object.isRequired,
+  setFormData: PropTypes.func.isRequired,
+  onSubmit: PropTypes.func.isRequired,
+  buttonText: PropTypes.string,
+};
 
 export default CommonForm;
